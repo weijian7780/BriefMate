@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 function readEnvValue(key) {
-  return process.env[key];
+  return import.meta.env?.[key] ?? globalThis.process?.env?.[key];
 }
 
 const supabaseUrl = readEnvValue('NEXT_PUBLIC_SUPABASE_URL');
