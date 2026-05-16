@@ -7,20 +7,38 @@ const useUser = () => {
 
   const refetchUser = React.useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.getUser();
-    setUser(error ? null : data.user);
-    setLoading(false);
-    return error ? null : data.user;
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      const nextUser = error ? null : data.user;
+      setUser(nextUser);
+      return nextUser;
+    } catch {
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   React.useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (!mounted) return;
-      setUser(error ? null : data.user);
-      setLoading(false);
-    });
+    async function loadUser() {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (!mounted) return;
+        setUser(error ? null : data.user);
+      } catch {
+        if (!mounted) return;
+        setUser(null);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadUser();
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -29,7 +47,7 @@ const useUser = () => {
 
     return () => {
       mounted = false;
-      subscription.subscription.unsubscribe();
+      subscription?.subscription?.unsubscribe?.();
     };
   }, []);
 

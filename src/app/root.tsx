@@ -36,9 +36,11 @@ import type { Route } from './+types/root';
 
 export const links = () => [];
 
-if (globalThis.window && globalThis.window !== undefined) {
+if (import.meta.env.DEV && globalThis.window && globalThis.window !== undefined) {
   globalThis.window.fetch = fetch;
 }
+
+const useDevOnlyServerHeartbeat = import.meta.env.DEV ? useDevServerHeartbeat : () => undefined;
 
 const LoadFontsSSR = import.meta.env.SSR ? LoadFonts : null;
 if (import.meta.hot) {
@@ -404,7 +406,7 @@ export const useHandleScreenshotRequest = () => {
 export function Layout({ children }: { children: ReactNode }) {
   useHandshakeParent();
   useHandleScreenshotRequest();
-  useDevServerHeartbeat();
+  useDevOnlyServerHeartbeat();
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location?.pathname;
@@ -440,8 +442,12 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script type="module" src="/src/__create/dev-error-overlay.js"></script>
-        <link rel="icon" href="/src/__create/favicon.png" />
+        {import.meta.env.DEV ? (
+          <>
+            <script type="module" src="/src/__create/dev-error-overlay.js"></script>
+            <link rel="icon" href="/src/__create/favicon.png" />
+          </>
+        ) : null}
         {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
