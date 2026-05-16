@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:/Users/User/Desktop/School/UMS SEM 6/Techno/anything\")",
+      "Bash(npm run *)",
+      "Bash(git -C \"/c/Users/User/Desktop/School/UMS SEM 6/Techno/anything\" diff -- \"apps/web/src/app/root.tsx\" \"apps/web/vite.config.ts\")"
+    ]
+  }
+}
