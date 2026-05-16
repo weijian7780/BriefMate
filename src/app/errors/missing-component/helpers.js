@@ -1,1 +1,1 @@
-export const SomethingElse = () => 'not what you wanted';
+export const MissingComponentExample = () => 'Missing component example';
