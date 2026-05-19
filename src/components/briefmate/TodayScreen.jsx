@@ -1,13 +1,15 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Bookmark,
   BookmarkCheck,
   ChevronRight,
+  RotateCw,
   ListChecks,
+  Layers,
   Target,
 } from "lucide-react";
 import PriorityPill from "./PriorityPill";
-import { getTodaySignals, MOCK_SIGNALS } from "../../data/signals";
+import { getTodaySignals } from "../../data/signals";
 
 function getGreeting() {
   if (typeof window === "undefined") return "Good morning";
@@ -66,11 +68,12 @@ function pluralizeSignal(count) {
 export default function TodayScreen({
   profile,
   saved,
-  signals = MOCK_SIGNALS,
+  signals = [],
   loading = false,
   onDecode,
   onToggleSave,
 }) {
+  const [flippedCards, setFlippedCards] = useState({});
   const todaySignals = useMemo(
     () => getTodaySignals(profile, signals),
     [profile, signals],
@@ -80,6 +83,12 @@ export default function TodayScreen({
   const queueSignals = todaySignals.slice(1);
   const matchedCount = todaySignals.filter(isMatchedSignal).length;
   const stackWatch = buildStackWatch(profile, todaySignals);
+  const toggleFlashcard = (signalId) => {
+    setFlippedCards((cards) => ({
+      ...cards,
+      [signalId]: !cards[signalId],
+    }));
+  };
 
   return (
     <div className="px-5 pt-6 pb-8">
@@ -187,6 +196,122 @@ export default function TodayScreen({
               <ChevronRight className="h-4 w-4" />
             </button>
           </section>
+        ) : !loading ? (
+          <section className="mt-6 rounded-2xl border border-dashed border-[#1E293B] bg-[#101722] p-6 text-center">
+            <h2 className="text-base font-semibold text-white">
+              No fresh tech signals today
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+              The live collector has no signal from the last 24 hours. Check
+              Explore for older collected signals or refresh after the collector
+              runs again.
+            </p>
+          </section>
+        ) : null}
+
+        {todaySignals.length > 0 ? (
+          <section
+            aria-label="Today's flashcards"
+            className="mt-6 rounded-2xl border border-[#1E293B] bg-[#101722] p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-[#10B981]" />
+                  <h2 className="text-sm font-semibold text-white">
+                    Today's flashcards
+                  </h2>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">
+                  {todaySignals.length}{" "}
+                  {todaySignals.length === 1 ? "card" : "cards"} from fresh
+                  tech signals
+                </p>
+              </div>
+              <span className="rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-2 py-0.5 font-mono text-[10px] uppercase text-[#10B981]">
+                New today
+              </span>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {todaySignals.map((signal, index) => {
+                const isBackVisible = Boolean(flippedCards[signal.id]);
+
+                return (
+                  <article
+                    key={signal.id}
+                    className="min-h-[164px] rounded-xl border border-[#1E293B] bg-[#0F1117]/70 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-[10px] uppercase tracking-wide text-slate-500">
+                          Card {index + 1}
+                        </div>
+                        <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-white">
+                          {signal.title}
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleFlashcard(signal.id)}
+                        aria-label={`Flip ${signal.title} flashcard`}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#1E293B] px-2 py-1 text-[11px] font-semibold text-[#60A5FA] hover:border-[#3B82F6]/50"
+                      >
+                        <RotateCw className="h-3 w-3" />
+                        Flip
+                      </button>
+                    </div>
+
+                    {isBackVisible ? (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <div className="font-mono text-[10px] uppercase text-slate-500">
+                            Simple meaning
+                          </div>
+                          <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                            {signal.beginnerExplanation || signal.summary}
+                          </p>
+                        </div>
+                        <div>
+                          <div className="font-mono text-[10px] uppercase text-slate-500">
+                            Action
+                          </div>
+                          <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                            {signal.recommendedAction ||
+                              "Open the source and verify before changing your project."}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-3">
+                        <div className="font-mono text-[10px] uppercase text-slate-500">
+                          What happened
+                        </div>
+                        <p className="mt-1 text-sm leading-relaxed text-slate-300">
+                          {signal.whatHappened || signal.summary}
+                        </p>
+                        {signal.sourceName || signal.publishedAt ? (
+                          <p className="mt-3 text-[11px] text-slate-500">
+                            {signal.sourceName
+                              ? `Source: ${signal.sourceName}`
+                              : ""}
+                            {signal.sourceName && signal.publishedAt
+                              ? " - "
+                              : ""}
+                            {signal.publishedAt
+                              ? `Published ${new Date(
+                                  signal.publishedAt,
+                                ).toLocaleDateString()}`
+                              : ""}
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
         ) : null}
 
         {queueSignals.length > 0 ? (
@@ -203,6 +328,7 @@ export default function TodayScreen({
                   key={signal.id}
                   type="button"
                   onClick={() => onDecode(signal.id)}
+                  aria-label={`Open ${signal.title}`}
                   className="w-full rounded-xl border border-[#1E293B] bg-[#1E293B]/25 p-3 text-left transition-colors hover:border-[#3B82F6]/50"
                 >
                   <div className="flex items-center justify-between gap-3">

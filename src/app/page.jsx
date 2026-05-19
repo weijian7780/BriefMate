@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useBriefmateStore } from "../utils/briefmateStore";
-import { MOCK_SIGNALS } from "../data/signals";
 import OnboardingScreen from "../components/briefmate/OnboardingScreen";
 import ProfileSetupScreen from "../components/briefmate/ProfileSetupScreen";
 import TodayScreen from "../components/briefmate/TodayScreen";
@@ -35,7 +34,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("today");
   const [decodeId, setDecodeId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [techSignals, setTechSignals] = useState(MOCK_SIGNALS);
+  const [techSignals, setTechSignals] = useState([]);
   const [signalsLoading, setSignalsLoading] = useState(false);
   const [signalsError, setSignalsError] = useState(null);
   const [signalsLastUpdatedAt, setSignalsLastUpdatedAt] = useState(null);
@@ -58,10 +57,10 @@ export default function HomePage() {
         if (cancelled) return;
 
         if (result.signals.length === 0) {
-          setTechSignals(MOCK_SIGNALS);
+          setTechSignals([]);
           setSignalsLastUpdatedAt(null);
           setSignalsError(
-            "No live tech signals found yet. Showing seed signals until Supabase has rows.",
+            "No live tech signals found yet. Add collector rows in Supabase or refresh later.",
           );
           return;
         }
@@ -71,10 +70,10 @@ export default function HomePage() {
         setSignalsError(null);
       } catch (error) {
         if (cancelled) return;
-        setTechSignals(MOCK_SIGNALS);
+        setTechSignals([]);
         setSignalsLastUpdatedAt(null);
         setSignalsError(
-          `${error?.message || "Unable to load live tech signals."} Showing seed signals until Supabase is ready.`,
+          error?.message || "Unable to load live tech signals.",
         );
       } finally {
         if (!cancelled) setSignalsLoading(false);

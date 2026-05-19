@@ -1,13 +1,12 @@
 import { useMemo } from "react";
 import { Bookmark, BookmarkCheck, ChevronRight } from "lucide-react";
 import PriorityPill from "./PriorityPill";
-import { MOCK_SIGNALS } from "../../data/signals";
 
 const GROUPS = ["Check Today", "Review This Week", "Save for Later"];
 
 export default function SavedScreen({
   saved,
-  signals = MOCK_SIGNALS,
+  signals = [],
   loading = false,
   onDecode,
   onToggleSave,

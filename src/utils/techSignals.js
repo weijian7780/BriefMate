@@ -63,7 +63,9 @@ export async function fetchTechSignals() {
     throw new Error(error.message || "Unable to load live tech signals.");
   }
 
-  const rows = data || [];
+  const rows = (data || []).filter(
+    (row) => row.source_name !== "BriefMate seed data",
+  );
 
   return {
     signals: rows.map(mapTechSignalRow),

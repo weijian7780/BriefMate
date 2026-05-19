@@ -69,4 +69,32 @@ describe('fetchTechSignals', () => {
       lastUpdatedAt: '2026-05-16T10:00:00.000Z',
     });
   });
+
+  it('does not return preserved seed rows as live tech signals', async () => {
+    mocks.orderSignals.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'gemini-2-5-flash',
+          title: 'Gemini 2.5 Flash release',
+          category: 'AI Tools',
+          relevance: 91,
+          priority: 'Check Today',
+          stack_match: 'Gemini API',
+          summary: 'Preserved seed signal.',
+          source_name: 'BriefMate seed data',
+          published_at: '2026-05-16T00:00:00.000Z',
+          collected_at: '2026-05-16T01:00:00.000Z',
+          updated_at: '2026-05-16T02:00:00.000Z',
+        },
+      ],
+      error: null,
+    });
+
+    const result = await fetchTechSignals();
+
+    expect(result).toEqual({
+      signals: [],
+      lastUpdatedAt: null,
+    });
+  });
 });

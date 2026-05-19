@@ -2,10 +2,10 @@ import { useMemo, useRef, useState } from "react";
 import { Search, ChevronRight } from "lucide-react";
 import Chip from "./Chip";
 import PriorityPill from "./PriorityPill";
-import { MOCK_SIGNALS, CATEGORIES } from "../../data/signals";
+import { CATEGORIES } from "../../data/signals";
 
 export default function ExploreScreen({
-  signals = MOCK_SIGNALS,
+  signals = [],
   lastUpdatedAt,
   loading = false,
   error = null,
