@@ -14,6 +14,7 @@ import {
 
 export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
   const [step, setStep] = useState(1);
+  const [displayName, setDisplayName] = useState(initial?.displayName || "");
   const [skillLevel, setSkillLevel] = useState(initial?.skillLevel || "");
   const [role, setRole] = useState(initial?.role || "");
   const [stack, setStack] = useState(initial?.stack || []);
@@ -73,7 +74,7 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
   };
 
   const canContinue =
-    (step === 1 && skillLevel && role) ||
+    (step === 1 && displayName.trim() && skillLevel && role) ||
     (step === 2 && primaryStack.length > 0) ||
     (step === 3 && signalPreferences.length > 0) ||
     (step === 4 && learningGoal && deadline && projectStage);
@@ -88,6 +89,7 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
     setSubmitting(true);
     try {
       await onComplete?.({
+        displayName: displayName.trim(),
         skillLevel,
         role,
         stack,
@@ -153,6 +155,23 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
               <p className="mt-1 text-sm text-slate-400">
                 Tell us where you are in your journey.
               </p>
+
+              <div className="mt-6">
+                <label
+                  htmlFor="display-name"
+                  className="font-mono text-[11px] uppercase tracking-wide text-slate-500"
+                >
+                  Display Name
+                </label>
+                <input
+                  id="display-name"
+                  type="text"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  placeholder="e.g. Wei Jian"
+                  className="mt-2 w-full rounded-xl border border-[#1E293B] bg-[#1E293B]/40 px-3.5 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#3B82F6] transition-colors"
+                />
+              </div>
 
               <div className="mt-6">
                 <label className="font-mono text-[11px] uppercase tracking-wide text-slate-500">

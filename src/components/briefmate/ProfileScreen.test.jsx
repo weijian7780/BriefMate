@@ -4,6 +4,7 @@ import ProfileScreen from './ProfileScreen';
 
 const baseProps = {
   profile: {
+    displayName: 'Wei Jian',
     skillLevel: 'Intermediate',
     role: 'Frontend Developer',
     stack: ['React', 'Supabase'],
@@ -30,6 +31,13 @@ beforeEach(() => {
 });
 
 describe('ProfileScreen', () => {
+  it('shows display name as the profile title and keeps role as context', () => {
+    render(<ProfileScreen {...baseProps} />);
+
+    expect(screen.getAllByText('Wei Jian')).toHaveLength(2);
+    expect(screen.getByText('Intermediate - Frontend Developer')).toBeInTheDocument();
+  });
+
   it('lets the user set a BriefMate password without changing Google password', async () => {
     render(<ProfileScreen {...baseProps} />);
 

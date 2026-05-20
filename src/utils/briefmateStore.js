@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 const defaultState = {
   onboarded: false,
   profile: {
+    displayName: '',
     skillLevel: '',
     role: '',
     stack: [],
@@ -20,9 +21,27 @@ const defaultState = {
   usefulIds: [],
 };
 
-function mapProfileRow(row) {
-  if (!row) return defaultState.profile;
+function getDisplayNameFromUser(user) {
+  const metadataName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.user_metadata?.display_name;
+
+  if (metadataName) return metadataName;
+
+  return user?.email?.split('@')?.[0] || '';
+}
+
+function mapProfileRow(row, user) {
+  if (!row) {
+    return {
+      ...defaultState.profile,
+      displayName: getDisplayNameFromUser(user),
+    };
+  }
+
   return {
+    displayName: row.display_name || getDisplayNameFromUser(user),
     skillLevel: row.skill_level ?? '',
     role: row.role ?? '',
     stack: row.stack ?? [],
@@ -40,6 +59,7 @@ function mapProfileState(userId, state) {
   return {
     user_id: userId,
     onboarded: state.onboarded,
+    display_name: state.profile.displayName,
     skill_level: state.profile.skillLevel,
     role: state.profile.role,
     stack: state.profile.stack,
@@ -63,7 +83,8 @@ async function fetchSignalIds(table, userId) {
   return rowsToIds(data);
 }
 
-async function loadState(userId) {
+async function loadState(user) {
+  const userId = user.id;
   const [{ data: profileRow, error: profileError }, saved, decodedIds, usefulIds] = await Promise.all([
     supabase.from('profiles').select('*').eq('user_id', userId).maybeSingle(),
     fetchSignalIds('saved_signals', userId),
@@ -76,7 +97,7 @@ async function loadState(userId) {
   return {
     ...defaultState,
     onboarded: profileRow?.onboarded ?? false,
-    profile: mapProfileRow(profileRow),
+    profile: mapProfileRow(profileRow, user),
     saved,
     decodedIds,
     usefulIds,
@@ -155,7 +176,7 @@ export function useBriefmateStore() {
 
       setUserId(user.id);
       try {
-        const nextState = await loadState(user.id);
+        const nextState = await loadState(user);
         if (!active) return;
         setState(nextState);
         setPersistenceError(null);

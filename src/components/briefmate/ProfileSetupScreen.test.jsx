@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 import ProfileSetupScreen from './ProfileSetupScreen';
 
 async function reachGoalStep() {
+  fireEvent.change(screen.getByLabelText(/display name/i), {
+    target: { value: 'Wei Jian' },
+  });
   fireEvent.click(screen.getByRole('button', { name: 'Beginner' }));
   fireEvent.click(screen.getByRole('button', { name: 'CS Student' }));
   fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
@@ -34,6 +37,7 @@ describe('ProfileSetupScreen', () => {
     await waitFor(() =>
       expect(onComplete).toHaveBeenCalledWith(
         expect.objectContaining({
+          displayName: 'Wei Jian',
           primaryStack: ['React', 'Firebase'],
           stack: ['React', 'Firebase'],
           signalPreferences: ['Pricing / Policy'],

@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useBriefmateStore } from './briefmateStore';
 
 const mocks = vi.hoisted(() => {
-  const authUser = { id: 'user-123', email: 'student@example.com' };
+  const authUser = {
+    id: 'user-123',
+    email: 'student@example.com',
+    user_metadata: { full_name: 'Wei Jian' },
+  };
   const state = {
     profileRow: null,
     profileError: null,
@@ -69,6 +73,7 @@ vi.mock('../lib/supabaseClient', () => ({ supabase: mocks.supabase }));
 beforeEach(() => {
   mocks.state.profileRow = {
     onboarded: true,
+    display_name: 'Saved Student',
     skill_level: 'Intermediate',
     role: 'Frontend Developer',
     stack: ['React', 'Supabase'],
@@ -97,6 +102,7 @@ describe('useBriefmateStore Supabase persistence', () => {
     expect(result.current.state).toMatchObject({
       onboarded: true,
       profile: {
+        displayName: 'Saved Student',
         skillLevel: 'Intermediate',
         role: 'Frontend Developer',
         stack: ['React', 'Supabase'],
@@ -120,6 +126,7 @@ describe('useBriefmateStore Supabase persistence', () => {
 
     await act(() =>
       result.current.completeOnboarding({
+        displayName: 'Custom Student',
         role: 'Backend Developer',
         primaryStack: ['Firebase'],
         signalPreferences: ['Pricing / Policy'],
@@ -132,6 +139,7 @@ describe('useBriefmateStore Supabase persistence', () => {
       expect.objectContaining({
         user_id: 'user-123',
         onboarded: true,
+        display_name: 'Custom Student',
         role: 'Backend Developer',
         primary_stack: ['Firebase'],
         signal_preferences: ['Pricing / Policy'],
@@ -140,6 +148,15 @@ describe('useBriefmateStore Supabase persistence', () => {
       }),
       { onConflict: 'user_id' },
     );
+  });
+
+  it('prefills display name from the authenticated user when no profile row exists', async () => {
+    mocks.state.profileRow = null;
+    const { result } = renderHook(() => useBriefmateStore());
+
+    await waitFor(() => expect(result.current.hydrated).toBe(true));
+
+    expect(result.current.state.profile.displayName).toBe('Wei Jian');
   });
 
   it('still saves onboarding for the authenticated user after preference hydration fails', async () => {

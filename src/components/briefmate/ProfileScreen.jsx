@@ -66,6 +66,10 @@ export default function ProfileScreen({
   const passwordSuccessMessage = hasBriefMatePassword
     ? "BriefMate password updated. Your Google password stays unchanged."
     : "BriefMate password set. You can now sign in with email and password.";
+  const profileTitle = profile?.displayName || profile?.role || "Developer";
+  const profileSubtitle = [profile?.skillLevel, profile?.role]
+    .filter(Boolean)
+    .join(" - ");
 
   const handlePasswordSubmit = async (event) => {
     event.preventDefault();
@@ -100,14 +104,14 @@ export default function ProfileScreen({
 
         <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#3B82F6]/20 text-[#3B82F6] font-bold text-lg">
-            {(profile?.role?.[0] || "D").toUpperCase()}
+            {(profileTitle?.[0] || "D").toUpperCase()}
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-white">
-              {profile?.role || "Developer"}
+              {profileTitle}
             </div>
             <div className="text-xs text-slate-400">
-              {profile?.skillLevel || "—"}
+              {profileSubtitle || "-"}
             </div>
           </div>
         </div>
@@ -119,6 +123,7 @@ export default function ProfileScreen({
         </div>
 
         <div className="mt-5 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">
+          <Row label="Display Name" value={profile?.displayName} />
           <Row label="Skill Level" value={profile?.skillLevel} />
           <Row label="Role" value={profile?.role} />
           <Row label="Current Project" value={profile?.currentProject} />
