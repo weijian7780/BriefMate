@@ -14,6 +14,7 @@ import AuthScreen from "../components/briefmate/AuthScreen";
 import useAuth from "../utils/useAuth";
 import useUser from "../utils/useUser";
 import { fetchTechSignals } from "../utils/techSignals";
+import { personalizeSignals } from "../data/signals";
 
 export default function HomePage() {
   const { user, loading: userLoading, refetch: refetchUser } = useUser();
@@ -184,9 +185,14 @@ export default function HomePage() {
     [user],
   );
 
+  const displaySignals = useMemo(
+    () => personalizeSignals(state.profile, techSignals),
+    [state.profile, techSignals],
+  );
+
   const decodeSignal = useMemo(
-    () => techSignals.find((s) => s.id === decodeId),
-    [techSignals, decodeId],
+    () => displaySignals.find((s) => s.id === decodeId),
+    [displaySignals, decodeId],
   );
 
   const stats = useMemo(
@@ -292,7 +298,7 @@ export default function HomePage() {
       )}
       {activeTab === "explore" && (
         <ExploreScreen
-          signals={techSignals}
+          signals={displaySignals}
           loading={signalsLoading}
           error={signalsError}
           lastUpdatedAt={signalsLastUpdatedAt}
@@ -302,7 +308,7 @@ export default function HomePage() {
       {activeTab === "saved" && (
         <SavedScreen
           saved={state.saved}
-          signals={techSignals}
+          signals={displaySignals}
           loading={signalsLoading}
           onDecode={handleDecode}
           onToggleSave={handleToggleSave}

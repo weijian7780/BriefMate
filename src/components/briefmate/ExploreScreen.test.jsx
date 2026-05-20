@@ -53,10 +53,10 @@ describe('ExploreScreen', () => {
   it('keeps category chips clickable when not dragging', () => {
     render(<ExploreScreen onDecode={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Frontend' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Web Dev' }));
 
-    expect(screen.getByRole('button', { name: 'Frontend' })).toHaveClass('bg-[#3B82F6]');
-    expect(screen.getByRole('button', { name: 'Frontend' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Web Dev' })).toHaveClass('bg-[#3B82F6]');
+    expect(screen.getByRole('button', { name: 'Web Dev' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');
   });
 
@@ -64,7 +64,7 @@ describe('ExploreScreen', () => {
     render(<ExploreScreen onDecode={vi.fn()} />);
 
     const categoryScroller = getCategoryScroller();
-    const frontendChip = screen.getByRole('button', { name: 'Frontend' });
+    const frontendChip = screen.getByRole('button', { name: 'Web Dev' });
 
     fireEvent.mouseDown(frontendChip, { button: 0, clientX: 100 });
     fireEvent.mouseMove(categoryScroller, { clientX: 60 });
