@@ -1,3 +1,5 @@
+import { enrichSignalSections } from "./signalPlaybooks";
+
 export const TECH_STACK_OPTIONS = [
   "React",
   "Next.js",
@@ -32,6 +34,12 @@ export const LEARNING_GOALS = [
   "DevOps",
 ];
 export const DEADLINES = ["This Week", "2 Weeks", "1 Month", "No Deadline"];
+export const PROJECT_STAGES = ["Learning", "Prototype", "Deployed", "Production"];
+export const ACTION_STYLES = [
+  "Tell me what to do",
+  "Explain only",
+  "Save for later",
+];
 export const CATEGORIES = [
   "All",
   "AI / Models",
@@ -43,6 +51,15 @@ export const CATEGORIES = [
   "Events",
   "Pricing / Policy",
   "Developer Tools",
+];
+export const SIGNAL_TYPE_OPTIONS = CATEGORIES.filter((category) => category !== "All");
+export const MUTED_TOPIC_OPTIONS = [
+  "Crypto",
+  "Hardware",
+  "Enterprise Cloud",
+  "Hype / Rumours",
+  "Gaming",
+  "Marketing News",
 ];
 
 const NO_STACK_MATCH = "No stack match";
@@ -139,10 +156,8 @@ function textIncludesTerm(text, term) {
   return text === term || text.includes(term);
 }
 
-function findStackMatch(profile, signal) {
-  const stack = profile?.stack || [];
-  if (stack.length === 0) return null;
-
+function findStackMatchInItems(stack, signal) {
+  if (!Array.isArray(stack) || stack.length === 0) return null;
   const stackMatch = normalize(signal.stackMatch);
   const searchText = getSearchText(signal);
 
@@ -150,9 +165,38 @@ function findStackMatch(profile, signal) {
     const terms = getStackTerms(item);
     return terms.some(
       (term) =>
-        textIncludesTerm(stackMatch, term) || textIncludesTerm(searchText, term),
+      textIncludesTerm(stackMatch, term) || textIncludesTerm(searchText, term),
     );
   }) || null;
+}
+
+function findStackMatch(profile, signal) {
+  return findStackMatchInItems(profile?.stack || [], signal);
+}
+
+function findPrimaryStackMatch(profile, signal) {
+  return findStackMatchInItems(profile?.primaryStack || [], signal);
+}
+
+function findSignalPreferenceMatch(profile, signal) {
+  const preferences = profile?.signalPreferences || [];
+  if (!Array.isArray(preferences) || preferences.length === 0) return null;
+
+  const category = normalize(signal.category);
+  const searchText = getSearchText(signal);
+
+  return preferences.find((preference) => {
+    const term = normalize(preference);
+    return category === term || textIncludesTerm(searchText, term);
+  }) || null;
+}
+
+function findMutedTopicMatch(profile, signal) {
+  const mutedTopics = profile?.mutedTopics || [];
+  if (!Array.isArray(mutedTopics) || mutedTopics.length === 0) return null;
+
+  const searchText = getSearchText(signal);
+  return mutedTopics.find((topic) => textIncludesTerm(searchText, normalize(topic))) || null;
 }
 
 function getProjectMatches(profile, signal) {
@@ -211,9 +255,47 @@ function getRiskFromRank(rank) {
   return "Low";
 }
 
-function personalizeRiskLevel(signal, hasPersonalMatch) {
+function getProjectStageRiskFloor(profile, signal, personalization) {
+  const projectStage = profile?.projectStage;
+  const directImpact = Boolean(
+    personalization.primaryStackMatch ||
+      personalization.stackMatch ||
+      personalization.projectMatches.length > 0,
+  );
+  if (!directImpact) return 1;
+
+  const category = signal.category;
+
+  if (["Deployed", "Production"].includes(projectStage)) {
+    if (
+      ["Security", "Pricing / Policy", "Backend / Cloud", "Database"].includes(
+        category,
+      )
+    ) {
+      return 3;
+    }
+    return 2;
+  }
+
+  if (projectStage === "Prototype") {
+    if (["Security", "Pricing / Policy"].includes(category)) return 3;
+    if (["Backend / Cloud", "Database", "Developer Tools"].includes(category)) {
+      return 2;
+    }
+  }
+
+  return 1;
+}
+
+function personalizeRiskLevel(signal, profile, personalization) {
   const baseRiskLevel = signal.baseRiskLevel || signal.riskLevel || "Low";
   const category = signal.category;
+  const hasPersonalMatch = Boolean(
+    personalization.stackMatch ||
+      personalization.primaryStackMatch ||
+      personalization.projectMatches.length > 0 ||
+      personalization.learningGoalMatch,
+  );
   let riskRank = getRiskRank(baseRiskLevel);
 
   if (["Security", "Pricing / Policy"].includes(category)) {
@@ -225,6 +307,8 @@ function personalizeRiskLevel(signal, hasPersonalMatch) {
     riskRank = Math.max(riskRank, 2);
   }
 
+  riskRank = Math.max(riskRank, getProjectStageRiskFloor(profile, signal, personalization));
+
   return getRiskFromRank(riskRank);
 }
 
@@ -232,31 +316,6 @@ function getPersonalizedPriority(relevance, riskLevel, fallbackPriority) {
   if (riskLevel === "High" || relevance >= 80) return "Check Today";
   if (relevance >= 58 || riskLevel === "Medium") return "Review This Week";
   return fallbackPriority || "Save for Later";
-}
-
-function buildPersonalizedWhyMatters(signal, profile, personalization) {
-  const reasons = [];
-
-  if (personalization.stackMatch) {
-    reasons.push(`you selected ${personalization.stackMatch} in your stack`);
-  }
-  if (personalization.projectMatches.length > 0) {
-    reasons.push(
-      `your project mentions ${personalization.projectMatches.join(", ")}`,
-    );
-  }
-  if (personalization.learningGoalMatch) {
-    reasons.push(`it fits your ${profile.learningGoal} learning path`);
-  }
-
-  if (reasons.length === 0) {
-    return (
-      signal.whyMatters ||
-      `This source tracks ${signal.category} updates. Review it if it affects what you learn, build, deploy, or secure.`
-    );
-  }
-
-  return `BriefMate raised this signal because ${reasons.join("; ")}.`;
 }
 
 function getSignalTimestamp(signal) {
@@ -277,31 +336,44 @@ function isFreshForToday(signal, now = new Date()) {
 export function personalizeSignal(profile, signal, now = new Date()) {
   const baseRelevance = signal.baseRelevance ?? signal.relevance ?? 0;
   const baseRiskLevel = signal.baseRiskLevel || signal.riskLevel || "Low";
-  const stackMatch = findStackMatch(profile, signal);
+  const primaryStackMatch = findPrimaryStackMatch(profile, signal);
+  const stackMatch = primaryStackMatch || findStackMatch(profile, signal);
   const projectMatches = getProjectMatches(profile, signal);
   const learningGoalMatch = matchesLearningGoal(profile, signal);
+  const signalPreferenceMatch = findSignalPreferenceMatch(profile, signal);
+  const mutedTopicMatch = findMutedTopicMatch(profile, signal);
   const hasPersonalMatch = Boolean(
-    stackMatch || projectMatches.length > 0 || learningGoalMatch,
+    stackMatch ||
+      primaryStackMatch ||
+      projectMatches.length > 0 ||
+      learningGoalMatch ||
+      signalPreferenceMatch,
   );
+
+  const personalization = {
+    stackMatch,
+    primaryStackMatch,
+    projectMatches,
+    learningGoalMatch,
+    signalPreferenceMatch,
+    mutedTopicMatch,
+  };
 
   // The collector score is treated as a weak base signal. Profile evidence is
   // stronger because BriefMate's value is personal impact, not generic news rank.
   const relevance = clampScore(
     baseRelevance * 0.35 +
-      (stackMatch ? 34 : 0) +
+      (primaryStackMatch ? 42 : stackMatch ? 30 : 0) +
       Math.min(projectMatches.length * 5, 15) +
       (learningGoalMatch ? 10 : 0) +
+      (signalPreferenceMatch ? 12 : 0) +
       getDeadlineScore(profile, hasPersonalMatch) +
       getFreshnessScore(signal, now) +
-      (CATEGORY_IMPORTANCE[signal.category] || 3),
+      (CATEGORY_IMPORTANCE[signal.category] || 3) -
+      (mutedTopicMatch ? 40 : 0),
   );
-  const riskLevel = personalizeRiskLevel(signal, hasPersonalMatch);
-
-  const personalization = {
-    stackMatch,
-    projectMatches,
-    learningGoalMatch,
-  };
+  const riskLevel = personalizeRiskLevel(signal, profile, personalization);
+  const enrichedSections = enrichSignalSections(signal, profile, personalization);
 
   return {
     ...signal,
@@ -311,7 +383,11 @@ export function personalizeSignal(profile, signal, now = new Date()) {
     riskLevel,
     priority: getPersonalizedPriority(relevance, riskLevel, signal.priority),
     stackMatch: stackMatch || signal.stackMatch || NO_STACK_MATCH,
-    whyMatters: buildPersonalizedWhyMatters(signal, profile, personalization),
+    whatHappened: enrichedSections.whatHappened,
+    beginnerExplanation: enrichedSections.beginnerExplanation,
+    whyMatters: enrichedSections.whyMatters,
+    recommendedAction: enrichedSections.recommendedAction,
+    signalType: enrichedSections.signalType,
     personalization,
   };
 }

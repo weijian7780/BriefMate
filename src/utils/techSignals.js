@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { cleanText } from "./textCleanup";
 
 const TECH_SIGNAL_COLUMNS = [
   "id",
@@ -22,6 +23,9 @@ const TECH_SIGNAL_COLUMNS = [
 ].join(",");
 
 function mapTechSignalRow(row) {
+  const summary = cleanText(row.summary);
+  const whatHappened = cleanText(row.what_happened) || summary;
+
   return {
     id: row.id,
     title: row.title,
@@ -29,12 +33,12 @@ function mapTechSignalRow(row) {
     relevance: row.relevance ?? 0,
     priority: row.priority || "Save for Later",
     stackMatch: row.stack_match || "No stack match",
-    summary: row.summary || "",
-    whatHappened: row.what_happened || row.summary || "",
-    beginnerExplanation: row.beginner_explanation || "",
-    whyMatters: row.why_matters || "",
+    summary,
+    whatHappened,
+    beginnerExplanation: cleanText(row.beginner_explanation),
+    whyMatters: cleanText(row.why_matters),
     riskLevel: row.risk_level || "Low",
-    recommendedAction: row.recommended_action || "",
+    recommendedAction: cleanText(row.recommended_action),
     resources: row.resources || [],
     sourceName: row.source_name || "",
     sourceUrl: row.source_url || "",

@@ -7,9 +7,14 @@ const defaultState = {
     skillLevel: '',
     role: '',
     stack: [],
+    primaryStack: [],
+    signalPreferences: [],
+    mutedTopics: [],
     currentProject: '',
     learningGoal: '',
     deadline: '',
+    projectStage: '',
+    actionStyle: '',
   },
   saved: [],
   decodedIds: [],
@@ -22,9 +27,14 @@ function mapProfileRow(row) {
     skillLevel: row.skill_level ?? '',
     role: row.role ?? '',
     stack: row.stack ?? [],
+    primaryStack: row.primary_stack ?? [],
+    signalPreferences: row.signal_preferences ?? [],
+    mutedTopics: row.muted_topics ?? [],
     currentProject: row.current_project ?? '',
     learningGoal: row.learning_goal ?? '',
     deadline: row.deadline ?? '',
+    projectStage: row.project_stage ?? '',
+    actionStyle: row.action_style ?? '',
   };
 }
 
@@ -35,9 +45,14 @@ function mapProfileState(userId, state) {
     skill_level: state.profile.skillLevel,
     role: state.profile.role,
     stack: state.profile.stack,
+    primary_stack: state.profile.primaryStack,
+    signal_preferences: state.profile.signalPreferences,
+    muted_topics: state.profile.mutedTopics,
     current_project: state.profile.currentProject,
     learning_goal: state.profile.learningGoal,
     deadline: state.profile.deadline,
+    project_stage: state.profile.projectStage,
+    action_style: state.profile.actionStyle,
   };
 }
 

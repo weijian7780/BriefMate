@@ -97,4 +97,47 @@ describe('fetchTechSignals', () => {
       lastUpdatedAt: null,
     });
   });
+
+  it('cleans HTML from feed text before returning live signals', async () => {
+    mocks.orderSignals.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'aws-sagemaker-html',
+          title: 'Amazon SageMaker HyperPod now supports data capture',
+          category: 'Backend / Cloud',
+          relevance: 49,
+          priority: 'Review This Week',
+          stack_match: 'AWS',
+          summary:
+            '<p>Amazon SageMaker HyperPod now supports data capture for inference workloads.</p>',
+          what_happened:
+            '<p>Amazon SageMaker HyperPod now supports data capture for inference workloads.</p>',
+          beginner_explanation: '<p>This is a backend update.</p>',
+          why_matters: '<p>This may affect cloud AI inference monitoring.</p>',
+          risk_level: 'Low',
+          recommended_action: '<p>Review the AWS changelog.</p>',
+          resources: ['AWS What\'s New'],
+          source_name: 'AWS What\'s New',
+          source_url: 'https://aws.amazon.com/about-aws/whats-new/',
+          published_at: '2026-05-20T08:00:00.000Z',
+          collected_at: '2026-05-20T09:00:00.000Z',
+          updated_at: '2026-05-20T10:00:00.000Z',
+        },
+      ],
+      error: null,
+    });
+
+    const result = await fetchTechSignals();
+
+    expect(result.signals[0]).toEqual(
+      expect.objectContaining({
+        summary: 'Amazon SageMaker HyperPod now supports data capture for inference workloads.',
+        whatHappened: 'Amazon SageMaker HyperPod now supports data capture for inference workloads.',
+        beginnerExplanation: 'This is a backend update.',
+        whyMatters: 'This may affect cloud AI inference monitoring.',
+        recommendedAction: 'Review the AWS changelog.',
+      }),
+    );
+    expect(result.signals[0].whatHappened).not.toMatch(/<\/?p>/i);
+  });
 });

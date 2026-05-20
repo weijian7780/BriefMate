@@ -14,6 +14,25 @@ function Row({ label, value }) {
   );
 }
 
+function PillList({ items, emptyText = "None selected." }) {
+  if (!items?.length) {
+    return <p className="mt-2 text-sm text-slate-500">{emptyText}</p>;
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {items.map((item) => (
+        <span
+          key={item}
+          className="rounded-md border border-[#1E293B] bg-[#0F1117] px-2 py-0.5 font-mono text-[11px] text-slate-200"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function StatCard({ label, value, accent }) {
   return (
     <div className="rounded-xl border border-[#1E293B] bg-[#1E293B]/30 p-3">
@@ -104,27 +123,36 @@ export default function ProfileScreen({
           <Row label="Role" value={profile?.role} />
           <Row label="Current Project" value={profile?.currentProject} />
           <Row label="Learning Goal" value={profile?.learningGoal} />
+          <Row label="Project Stage" value={profile?.projectStage} />
           <Row label="Deadline" value={profile?.deadline} />
+          <Row label="Action Style" value={profile?.actionStyle} />
         </div>
 
         <div className="mt-4 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">
           <div className="font-mono text-[11px] uppercase tracking-wide text-slate-500">
-            Tech Stack
+            Primary Stack
           </div>
-          {profile?.stack?.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {profile.stack.map((item) => (
-                <span
-                  key={item}
-                  className="rounded-md border border-[#1E293B] bg-[#0F1117] px-2 py-0.5 font-mono text-[11px] text-slate-200"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-slate-500">No stack selected.</p>
-          )}
+          <PillList items={profile?.primaryStack} emptyText="No primary stack selected." />
+
+          <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-slate-500">
+            Also Tracked
+          </div>
+          <PillList items={profile?.stack} emptyText="No stack selected." />
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">
+          <div className="font-mono text-[11px] uppercase tracking-wide text-slate-500">
+            Signal Priorities
+          </div>
+          <PillList
+            items={profile?.signalPreferences}
+            emptyText="No boosted signal types selected."
+          />
+
+          <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-slate-500">
+            Muted Topics
+          </div>
+          <PillList items={profile?.mutedTopics} />
         </div>
 
         <div className="mt-4 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">

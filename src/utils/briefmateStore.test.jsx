@@ -72,9 +72,14 @@ beforeEach(() => {
     skill_level: 'Intermediate',
     role: 'Frontend Developer',
     stack: ['React', 'Supabase'],
+    primary_stack: ['React'],
+    signal_preferences: ['Security', 'Pricing / Policy'],
+    muted_topics: ['Crypto'],
     current_project: 'BriefMate',
     learning_goal: 'Ship a full-stack app',
     deadline: 'This month',
+    project_stage: 'Prototype',
+    action_style: 'Tell me what to do',
   };
   mocks.state.profileError = null;
   mocks.state.savedRows = [{ signal_id: 'react-19' }];
@@ -96,9 +101,14 @@ describe('useBriefmateStore Supabase persistence', () => {
         skillLevel: 'Intermediate',
         role: 'Frontend Developer',
         stack: ['React', 'Supabase'],
+        primaryStack: ['React'],
+        signalPreferences: ['Security', 'Pricing / Policy'],
+        mutedTopics: ['Crypto'],
         currentProject: 'BriefMate',
         learningGoal: 'Ship a full-stack app',
         deadline: 'This month',
+        projectStage: 'Prototype',
+        actionStyle: 'Tell me what to do',
       },
       saved: ['react-19'],
       decodedIds: ['supabase-auth'],
@@ -110,13 +120,27 @@ describe('useBriefmateStore Supabase persistence', () => {
     const { result } = renderHook(() => useBriefmateStore());
     await waitFor(() => expect(result.current.hydrated).toBe(true));
 
-    await act(() => result.current.completeOnboarding({ role: 'Backend Developer' }));
+    await act(() =>
+      result.current.completeOnboarding({
+        role: 'Backend Developer',
+        primaryStack: ['Firebase'],
+        signalPreferences: ['Pricing / Policy'],
+        mutedTopics: ['Crypto'],
+        projectStage: 'Prototype',
+        actionStyle: 'Tell me what to do',
+      }),
+    );
 
     expect(mocks.upsertProfile).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: 'user-123',
         onboarded: true,
         role: 'Backend Developer',
+        primary_stack: ['Firebase'],
+        signal_preferences: ['Pricing / Policy'],
+        muted_topics: ['Crypto'],
+        project_stage: 'Prototype',
+        action_style: 'Tell me what to do',
       }),
       { onConflict: 'user_id' },
     );
