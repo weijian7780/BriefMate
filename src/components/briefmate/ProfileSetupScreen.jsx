@@ -10,7 +10,6 @@ import {
   SIGNAL_TYPE_OPTIONS,
   MUTED_TOPIC_OPTIONS,
   PROJECT_STAGES,
-  ACTION_STYLES,
 } from "../../data/signals";
 
 export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
@@ -35,7 +34,6 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
   const [projectStage, setProjectStage] = useState(
     initial?.projectStage || "",
   );
-  const [actionStyle, setActionStyle] = useState(initial?.actionStyle || "");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -78,7 +76,7 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
     (step === 1 && skillLevel && role) ||
     (step === 2 && primaryStack.length > 0) ||
     (step === 3 && signalPreferences.length > 0) ||
-    (step === 4 && learningGoal && deadline && projectStage && actionStyle);
+    (step === 4 && learningGoal && deadline && projectStage);
 
   const handleNext = async () => {
     setSubmitError("");
@@ -100,7 +98,6 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
         learningGoal,
         deadline,
         projectStage,
-        actionStyle,
       });
     } catch (error) {
       setSubmitError(error?.message || "Unable to save preferences.");
@@ -355,23 +352,6 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
                       onClick={() => setDeadline(d)}
                     >
                       {d}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label className="font-mono text-[11px] uppercase tracking-wide text-slate-500">
-                  Action Style
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {ACTION_STYLES.map((style) => (
-                    <Chip
-                      key={style}
-                      active={actionStyle === style}
-                      onClick={() => setActionStyle(style)}
-                    >
-                      {style}
                     </Chip>
                   ))}
                 </div>

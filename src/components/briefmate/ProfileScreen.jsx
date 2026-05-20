@@ -125,7 +125,6 @@ export default function ProfileScreen({
           <Row label="Learning Goal" value={profile?.learningGoal} />
           <Row label="Project Stage" value={profile?.projectStage} />
           <Row label="Deadline" value={profile?.deadline} />
-          <Row label="Action Style" value={profile?.actionStyle} />
         </div>
 
         <div className="mt-4 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">

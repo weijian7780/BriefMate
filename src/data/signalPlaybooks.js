@@ -199,17 +199,6 @@ function buildPlaybookWhyMatters(signal, profile, playbook, personalization) {
 function adaptActionToProfile(action, profile, playbook, hasDirectMatch) {
   if (!hasDirectMatch) return action;
 
-  if (profile?.actionStyle === "Explain only") {
-    return "Read the explanation and note what changed. Do not change your project today unless this update directly blocks your current learning or build task.";
-  }
-
-  if (profile?.actionStyle === "Save for later") {
-    if (playbook === "security_alert") {
-      return `${action} Save it only after confirming your stack is not affected.`;
-    }
-    return "Save this brief and review it during your next project planning session; no immediate change is needed today.";
-  }
-
   if (profile?.projectStage === "Learning") {
     return `${action} Treat it as a learning comparison first, not a migration task.`;
   }

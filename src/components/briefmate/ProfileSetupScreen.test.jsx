@@ -21,7 +21,6 @@ async function reachGoalStep() {
   fireEvent.click(screen.getByRole('button', { name: 'Backend' }));
   fireEvent.click(screen.getByRole('button', { name: 'Prototype' }));
   fireEvent.click(screen.getByRole('button', { name: '2 Weeks' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Tell me what to do' }));
 }
 
 describe('ProfileSetupScreen', () => {
@@ -43,7 +42,6 @@ describe('ProfileSetupScreen', () => {
           learningGoal: 'Backend',
           projectStage: 'Prototype',
           deadline: '2 Weeks',
-          actionStyle: 'Tell me what to do',
         }),
       ),
     );

@@ -79,7 +79,6 @@ beforeEach(() => {
     learning_goal: 'Ship a full-stack app',
     deadline: 'This month',
     project_stage: 'Prototype',
-    action_style: 'Tell me what to do',
   };
   mocks.state.profileError = null;
   mocks.state.savedRows = [{ signal_id: 'react-19' }];
@@ -108,7 +107,6 @@ describe('useBriefmateStore Supabase persistence', () => {
         learningGoal: 'Ship a full-stack app',
         deadline: 'This month',
         projectStage: 'Prototype',
-        actionStyle: 'Tell me what to do',
       },
       saved: ['react-19'],
       decodedIds: ['supabase-auth'],
@@ -127,7 +125,6 @@ describe('useBriefmateStore Supabase persistence', () => {
         signalPreferences: ['Pricing / Policy'],
         mutedTopics: ['Crypto'],
         projectStage: 'Prototype',
-        actionStyle: 'Tell me what to do',
       }),
     );
 
@@ -140,7 +137,6 @@ describe('useBriefmateStore Supabase persistence', () => {
         signal_preferences: ['Pricing / Policy'],
         muted_topics: ['Crypto'],
         project_stage: 'Prototype',
-        action_style: 'Tell me what to do',
       }),
       { onConflict: 'user_id' },
     );

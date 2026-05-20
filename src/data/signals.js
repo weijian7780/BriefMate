@@ -35,11 +35,6 @@ export const LEARNING_GOALS = [
 ];
 export const DEADLINES = ["This Week", "2 Weeks", "1 Month", "No Deadline"];
 export const PROJECT_STAGES = ["Learning", "Prototype", "Deployed", "Production"];
-export const ACTION_STYLES = [
-  "Tell me what to do",
-  "Explain only",
-  "Save for later",
-];
 export const CATEGORIES = [
   "All",
   "AI / Models",

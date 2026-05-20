@@ -9,7 +9,6 @@ BriefMate Tech is a daily tech signal briefing app for student developers. Its c
 - Signal type preference: categories the user wants BriefMate to boost, such as Security, Pricing / Policy, AI / Models, or Web Dev.
 - Muted topic: topics the user wants lowered in relevance. Muted signals may still appear if they strongly match the user's stack.
 - Project stage: whether the user is learning, prototyping, deployed, or in production. Later stages should raise risk for security, pricing, backend, cloud, and database changes.
-- Action style: how direct the recommendation should be. It changes the recommended action text, not the source data.
 
 ## Scoring Boundary
 

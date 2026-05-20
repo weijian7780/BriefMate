@@ -14,7 +14,6 @@ const defaultState = {
     learningGoal: '',
     deadline: '',
     projectStage: '',
-    actionStyle: '',
   },
   saved: [],
   decodedIds: [],
@@ -34,7 +33,6 @@ function mapProfileRow(row) {
     learningGoal: row.learning_goal ?? '',
     deadline: row.deadline ?? '',
     projectStage: row.project_stage ?? '',
-    actionStyle: row.action_style ?? '',
   };
 }
 
@@ -52,7 +50,6 @@ function mapProfileState(userId, state) {
     learning_goal: state.profile.learningGoal,
     deadline: state.profile.deadline,
     project_stage: state.profile.projectStage,
-    action_style: state.profile.actionStyle,
   };
 }
 
