@@ -290,6 +290,47 @@ describe('getTodaySignals', () => {
     expect(today[0]).toEqual(expect.objectContaining({ id: 'matched-next' }));
     vi.useRealTimers();
   });
+
+  it('can sort already personalized signals without recalculating them', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
+
+    const today = getTodaySignals(
+      { stack: ['Unrelated'] },
+      [
+        {
+          id: 'pre-ranked',
+          title: 'Already ranked signal',
+          category: 'Developer Tools',
+          relevance: 99,
+          priority: 'Check Today',
+          stackMatch: 'Precomputed Stack',
+          personalization: { stackMatch: 'Precomputed Stack' },
+          publishedAt: '2026-05-20T08:00:00.000Z',
+        },
+        {
+          id: 'lower-ranked',
+          title: 'Lower ranked signal',
+          category: 'Security',
+          relevance: 50,
+          priority: 'Review This Week',
+          stackMatch: 'No stack match',
+          personalization: {},
+          publishedAt: '2026-05-20T09:00:00.000Z',
+        },
+      ],
+      { personalized: true },
+    );
+
+    expect(today[0]).toEqual(
+      expect.objectContaining({
+        id: 'pre-ranked',
+        relevance: 99,
+        stackMatch: 'Precomputed Stack',
+      }),
+    );
+    vi.useRealTimers();
+  });
 });
 
 describe('signal categories', () => {

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { getAuthenticatedUser, subscribeToAuthStateChange } from './authSession';
 
 const defaultState = {
   onboarded: false,
@@ -62,7 +63,7 @@ function mapProfileState(userId, state) {
     display_name: state.profile.displayName,
     skill_level: state.profile.skillLevel,
     role: state.profile.role,
-    stack: state.profile.primaryStack,
+    stack: state.profile.stack,
     primary_stack: state.profile.primaryStack,
     signal_preferences: state.profile.signalPreferences,
     muted_topics: state.profile.mutedTopics,
@@ -102,12 +103,6 @@ async function loadState(user) {
     decodedIds,
     usefulIds,
   };
-}
-
-async function getAuthenticatedUser() {
-  const { data, error } = await supabase.auth.getUser();
-  if (error) return null;
-  return data.user;
 }
 
 async function upsertProfile(userId, state) {
@@ -199,7 +194,7 @@ export function useBriefmateStore() {
         setHydrated(true);
       });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: subscription } = subscribeToAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         recordLogin(session.user).catch(() => {});
       }

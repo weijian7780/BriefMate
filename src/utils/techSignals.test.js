@@ -1,26 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchTechSignals } from './techSignals';
+import { clearTechSignalsCache, fetchTechSignals } from './techSignals';
 
 const mocks = vi.hoisted(() => {
-  const orderSignals = vi.fn();
+  const limitSignals = vi.fn();
+  const orderSignals = vi.fn(() => ({ limit: limitSignals }));
   const eqActive = vi.fn(() => ({ order: orderSignals }));
   const selectSignals = vi.fn(() => ({ eq: eqActive }));
   const supabase = {
     from: vi.fn(() => ({ select: selectSignals })),
   };
 
-  return { supabase, selectSignals, eqActive, orderSignals };
+  return { supabase, selectSignals, eqActive, orderSignals, limitSignals };
 });
 
 vi.mock('../lib/supabaseClient', () => ({ supabase: mocks.supabase }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clearTechSignalsCache();
 });
 
 describe('fetchTechSignals', () => {
   it('loads active Supabase rows and maps them to BriefMate signal fields', async () => {
-    mocks.orderSignals.mockResolvedValueOnce({
+    mocks.limitSignals.mockResolvedValueOnce({
       data: [
         {
           id: 'live-supabase-edge-functions',
@@ -50,6 +52,7 @@ describe('fetchTechSignals', () => {
 
     expect(mocks.supabase.from).toHaveBeenCalledWith('tech_signals');
     expect(mocks.eqActive).toHaveBeenCalledWith('active', true);
+    expect(mocks.limitSignals).toHaveBeenCalledWith(120);
     expect(result).toEqual({
       signals: [
         expect.objectContaining({
@@ -71,7 +74,7 @@ describe('fetchTechSignals', () => {
   });
 
   it('does not return preserved seed rows as live tech signals', async () => {
-    mocks.orderSignals.mockResolvedValueOnce({
+    mocks.limitSignals.mockResolvedValueOnce({
       data: [
         {
           id: 'gemini-2-5-flash',
@@ -99,7 +102,7 @@ describe('fetchTechSignals', () => {
   });
 
   it('cleans HTML from feed text before returning live signals', async () => {
-    mocks.orderSignals.mockResolvedValueOnce({
+    mocks.limitSignals.mockResolvedValueOnce({
       data: [
         {
           id: 'aws-sagemaker-html',
@@ -139,5 +142,33 @@ describe('fetchTechSignals', () => {
       }),
     );
     expect(result.signals[0].whatHappened).not.toMatch(/<\/?p>/i);
+  });
+
+  it('reuses cached live signals to avoid repeated Supabase reads in one session', async () => {
+    mocks.limitSignals.mockResolvedValueOnce({
+      data: [
+        {
+          id: 'cached-signal',
+          title: 'Cached signal',
+          category: 'Developer Tools',
+          relevance: 50,
+          priority: 'Review This Week',
+          stack_match: 'No stack match',
+          summary: 'A cached signal.',
+          source_name: 'Tool Blog',
+          published_at: '2026-05-20T08:00:00.000Z',
+          collected_at: '2026-05-20T09:00:00.000Z',
+          updated_at: '2026-05-20T10:00:00.000Z',
+        },
+      ],
+      error: null,
+    });
+
+    const first = await fetchTechSignals();
+    const second = await fetchTechSignals();
+
+    expect(second).toEqual(first);
+    expect(mocks.supabase.from).toHaveBeenCalledTimes(1);
+    expect(mocks.limitSignals).toHaveBeenCalledTimes(1);
   });
 });

@@ -392,10 +392,13 @@ export function personalizeSignals(profile, signals = [], now = new Date()) {
 }
 
 // Get the 3 fresh "Today" signals based on user profile.
-export function getTodaySignals(profile, signals = []) {
-  const now = new Date();
+export function getTodaySignals(profile, signals = [], options = {}) {
+  const now = options.now || new Date();
+  const rankedSignals = options.personalized
+    ? signals
+    : personalizeSignals(profile, signals, now);
 
-  return personalizeSignals(profile, signals, now)
+  return rankedSignals
     .filter((signal) => isFreshForToday(signal))
     .sort((a, b) => {
       const relevanceDiff = (b.relevance ?? 0) - (a.relevance ?? 0);

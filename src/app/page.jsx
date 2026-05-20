@@ -290,7 +290,8 @@ export default function HomePage() {
         <TodayScreen
           profile={state.profile}
           saved={state.saved}
-          signals={techSignals}
+          signals={displaySignals}
+          signalsPersonalized
           loading={signalsLoading}
           onDecode={handleDecode}
           onToggleSave={handleToggleSave}

@@ -128,6 +128,7 @@ describe('useBriefmateStore Supabase persistence', () => {
       result.current.completeOnboarding({
         displayName: 'Custom Student',
         role: 'Backend Developer',
+        stack: ['Firebase', 'React'],
         primaryStack: ['Firebase'],
         signalPreferences: ['Pricing / Policy'],
         mutedTopics: ['Crypto'],
@@ -141,6 +142,7 @@ describe('useBriefmateStore Supabase persistence', () => {
         onboarded: true,
         display_name: 'Custom Student',
         role: 'Backend Developer',
+        stack: ['Firebase', 'React'],
         primary_stack: ['Firebase'],
         signal_preferences: ['Pricing / Policy'],
         muted_topics: ['Crypto'],

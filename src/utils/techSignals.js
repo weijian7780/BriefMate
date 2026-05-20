@@ -22,6 +22,12 @@ const TECH_SIGNAL_COLUMNS = [
   "updated_at",
 ].join(",");
 
+const MAX_TECH_SIGNAL_ROWS = 120;
+const TECH_SIGNALS_CACHE_MS = 2 * 60 * 1000;
+
+let cachedTechSignals = null;
+let pendingTechSignalsRequest = null;
+
 function mapTechSignalRow(row) {
   const summary = cleanText(row.summary);
   const whatHappened = cleanText(row.what_happened) || summary;
@@ -49,19 +55,26 @@ function mapTechSignalRow(row) {
 }
 
 function getLatestUpdatedAt(rows) {
-  return rows
-    .map((row) => row.updated_at || row.collected_at || row.published_at)
-    .filter(Boolean)
-    .sort()
-    .at(-1) || null;
+  return rows.reduce((latest, row) => {
+    const timestamp = row.updated_at || row.collected_at || row.published_at;
+    if (!timestamp) return latest;
+    if (!latest) return timestamp;
+    return timestamp > latest ? timestamp : latest;
+  }, null);
 }
 
-export async function fetchTechSignals() {
+export function clearTechSignalsCache() {
+  cachedTechSignals = null;
+  pendingTechSignalsRequest = null;
+}
+
+async function readTechSignalsFromSupabase() {
   const { data, error } = await supabase
     .from("tech_signals")
     .select(TECH_SIGNAL_COLUMNS)
     .eq("active", true)
-    .order("published_at", { ascending: false, nullsFirst: false });
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(MAX_TECH_SIGNAL_ROWS);
 
   if (error) {
     throw new Error(error.message || "Unable to load live tech signals.");
@@ -75,4 +88,33 @@ export async function fetchTechSignals() {
     signals: rows.map(mapTechSignalRow),
     lastUpdatedAt: getLatestUpdatedAt(rows),
   };
+}
+
+export async function fetchTechSignals({ forceRefresh = false } = {}) {
+  const now = Date.now();
+  if (
+    !forceRefresh &&
+    cachedTechSignals &&
+    now - cachedTechSignals.cachedAt < TECH_SIGNALS_CACHE_MS
+  ) {
+    return cachedTechSignals.result;
+  }
+
+  if (!forceRefresh && pendingTechSignalsRequest) {
+    return pendingTechSignalsRequest;
+  }
+
+  pendingTechSignalsRequest = readTechSignalsFromSupabase()
+    .then((result) => {
+      cachedTechSignals = {
+        cachedAt: Date.now(),
+        result,
+      };
+      return result;
+    })
+    .finally(() => {
+      pendingTechSignalsRequest = null;
+    });
+
+  return pendingTechSignalsRequest;
 }

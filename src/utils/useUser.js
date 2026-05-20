@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { getAuthenticatedUser, subscribeToAuthStateChange } from './authSession';
 
 const useUser = () => {
   const [user, setUser] = React.useState(null);
@@ -8,8 +8,7 @@ const useUser = () => {
   const refetchUser = React.useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.getUser();
-      const nextUser = error ? null : data.user;
+      const nextUser = await getAuthenticatedUser();
       setUser(nextUser);
       return nextUser;
     } catch {
@@ -25,9 +24,9 @@ const useUser = () => {
 
     async function loadUser() {
       try {
-        const { data, error } = await supabase.auth.getUser();
+        const nextUser = await getAuthenticatedUser();
         if (!mounted) return;
-        setUser(error ? null : data.user);
+        setUser(nextUser);
       } catch {
         if (!mounted) return;
         setUser(null);
@@ -40,7 +39,7 @@ const useUser = () => {
 
     loadUser();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: subscription } = subscribeToAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });

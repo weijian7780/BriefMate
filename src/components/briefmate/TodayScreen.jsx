@@ -69,14 +69,15 @@ export default function TodayScreen({
   profile,
   saved,
   signals = [],
+  signalsPersonalized = false,
   loading = false,
   onDecode,
   onToggleSave,
 }) {
   const [flippedCards, setFlippedCards] = useState({});
   const todaySignals = useMemo(
-    () => getTodaySignals(profile, signals),
-    [profile, signals],
+    () => getTodaySignals(profile, signals, { personalized: signalsPersonalized }),
+    [profile, signals, signalsPersonalized],
   );
   const greeting = getGreeting();
   const focusSignal = todaySignals[0];
