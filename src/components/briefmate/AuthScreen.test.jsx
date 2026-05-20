@@ -56,4 +56,22 @@ describe('AuthScreen', () => {
     expect(screen.getByRole('heading', { name: 'Welcome back to BriefMate' })).toBeInTheDocument();
     expect(screen.getByText(/account created/i)).toBeInTheDocument();
   });
+
+  it('displays the specific error message when signup fails', async () => {
+    auth.signUpWithCredentials.mockRejectedValue(new Error('An account with this email already exists. Please sign in instead.'));
+    render(<AuthScreen />);
+
+    fireEvent.click(screen.getByRole('button', { name: /create one/i }));
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'student@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'correct-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^create account$/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText('An account with this email already exists. Please sign in instead.')).toBeInTheDocument()
+    );
+  });
 });

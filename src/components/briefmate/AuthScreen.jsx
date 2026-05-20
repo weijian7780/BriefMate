@@ -43,8 +43,8 @@ export default function AuthScreen() {
         setPassword('');
         setNotice('Account created. Sign in with your new account.');
       }
-    } catch {
-      setError(isSignUp ? 'Unable to create your account' : 'Unable to sign in with those details');
+    } catch (err) {
+      setError(err?.message || (isSignUp ? 'Unable to create your account' : 'Unable to sign in with those details'));
     } finally {
       setLoading(false);
     }
