@@ -42,6 +42,16 @@ function useAuth() {
   }, []);
 
   const signUpWithCredentials = useCallback(async ({ email, password }) => {
+    const { data: exists, error: checkError } = await supabase.rpc('email_exists', {
+      email_to_check: email.trim().toLowerCase(),
+    });
+    if (checkError) {
+      throw new Error(checkError.message || 'Verification failed');
+    }
+    if (exists) {
+      throw new Error('An account with this email already exists. Please sign in instead.');
+    }
+
     return throwIfSupabaseError(
       await supabase.auth.signUp({
         email,

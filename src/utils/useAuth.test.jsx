@@ -13,6 +13,7 @@ const { supabase } = vi.hoisted(() => ({
       signOut: vi.fn(),
     },
     from: vi.fn(),
+    rpc: vi.fn(),
   },
 }));
 
@@ -26,6 +27,7 @@ beforeEach(() => {
   supabase.auth.updateUser.mockReset();
   supabase.auth.signOut.mockReset();
   supabase.from.mockReset();
+  supabase.rpc.mockReset();
   supabase.auth.getUser.mockResolvedValue({
     data: {
       user: {
@@ -41,6 +43,7 @@ beforeEach(() => {
   supabase.auth.signInWithOAuth.mockResolvedValue({ error: null });
   supabase.auth.updateUser.mockResolvedValue({ error: null });
   supabase.auth.signOut.mockResolvedValue({ error: null });
+  supabase.rpc.mockResolvedValue({ data: false, error: null });
   supabase.from.mockReturnValue({
     insert: vi.fn(() => Promise.resolve({ error: null })),
   });
@@ -73,10 +76,51 @@ describe('useAuth', () => {
       }),
     );
 
+    expect(supabase.rpc).toHaveBeenCalledWith('email_exists', {
+      email_to_check: 'student@example.com',
+    });
     expect(supabase.auth.signUp).toHaveBeenCalledWith({
       email: 'student@example.com',
       password: 'correct-password',
     });
+  });
+
+  it('fails to sign up if email already exists', async () => {
+    supabase.rpc.mockResolvedValue({ data: true, error: null });
+    const { result } = renderHook(() => useAuth());
+
+    await expect(
+      act(() =>
+        result.current.signUpWithCredentials({
+          email: 'student@example.com',
+          password: 'correct-password',
+        })
+      )
+    ).rejects.toThrow('An account with this email already exists. Please sign in instead.');
+
+    expect(supabase.rpc).toHaveBeenCalledWith('email_exists', {
+      email_to_check: 'student@example.com',
+    });
+    expect(supabase.auth.signUp).not.toHaveBeenCalled();
+  });
+
+  it('fails to sign up if email_exists check fails', async () => {
+    supabase.rpc.mockResolvedValue({ data: null, error: { message: 'DB Error' } });
+    const { result } = renderHook(() => useAuth());
+
+    await expect(
+      act(() =>
+        result.current.signUpWithCredentials({
+          email: 'student@example.com',
+          password: 'correct-password',
+        })
+      )
+    ).rejects.toThrow('DB Error');
+
+    expect(supabase.rpc).toHaveBeenCalledWith('email_exists', {
+      email_to_check: 'student@example.com',
+    });
+    expect(supabase.auth.signUp).not.toHaveBeenCalled();
   });
 
   it('starts Google OAuth through Supabase', async () => {
