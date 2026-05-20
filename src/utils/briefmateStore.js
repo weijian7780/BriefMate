@@ -62,7 +62,7 @@ function mapProfileState(userId, state) {
     display_name: state.profile.displayName,
     skill_level: state.profile.skillLevel,
     role: state.profile.role,
-    stack: state.profile.stack,
+    stack: state.profile.primaryStack,
     primary_stack: state.profile.primaryStack,
     signal_preferences: state.profile.signalPreferences,
     muted_topics: state.profile.mutedTopics,

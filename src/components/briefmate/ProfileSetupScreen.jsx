@@ -17,11 +17,10 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
   const [displayName, setDisplayName] = useState(initial?.displayName || "");
   const [skillLevel, setSkillLevel] = useState(initial?.skillLevel || "");
   const [role, setRole] = useState(initial?.role || "");
-  const [stack, setStack] = useState(initial?.stack || []);
   const [primaryStack, setPrimaryStack] = useState(
     initial?.primaryStack?.length
       ? initial.primaryStack
-      : (initial?.stack || []).slice(0, 3),
+      : initial?.stack || [],
   );
   const [signalPreferences, setSignalPreferences] = useState(
     initial?.signalPreferences || [],
@@ -38,27 +37,10 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const toggleStack = (item) => {
-    setStack((items) => {
-      if (items.includes(item)) {
-        setPrimaryStack((primary) => primary.filter((x) => x !== item));
-        return items.filter((x) => x !== item);
-      }
-      return [...items, item];
-    });
-  };
-
   const togglePrimaryStack = (item) => {
-    setPrimaryStack((items) => {
-      if (items.includes(item)) {
-        return items.filter((x) => x !== item);
-      }
-      if (items.length >= 3) return items;
-      setStack((selected) =>
-        selected.includes(item) ? selected : [...selected, item],
-      );
-      return [...items, item];
-    });
+    setPrimaryStack((items) =>
+      items.includes(item) ? items.filter((x) => x !== item) : [...items, item],
+    );
   };
 
   const toggleSignalPreference = (item) => {
@@ -92,7 +74,7 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
         displayName: displayName.trim(),
         skillLevel,
         role,
-        stack,
+        stack: primaryStack,
         primaryStack,
         signalPreferences,
         mutedTopics,
@@ -218,7 +200,7 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
 
               <div className="mt-6">
                 <label className="font-mono text-[11px] uppercase tracking-wide text-slate-500">
-                  Primary Stack, max 3
+                  Primary Stack
                 </label>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {TECH_STACK_OPTIONS.map((item) => (
@@ -232,30 +214,9 @@ export default function ProfileSetupScreen({ initial, onComplete, onBack }) {
                   ))}
                 </div>
                 <p className="mt-3 font-mono text-[11px] text-slate-500">
-                  {primaryStack.length}/3 primary selected
+                  {primaryStack.length} selected
                 </p>
               </div>
-
-              <div className="mt-6">
-                <label className="font-mono text-[11px] uppercase tracking-wide text-slate-500">
-                  Also Track
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {TECH_STACK_OPTIONS.map((item) => (
-                    <Chip
-                      key={item}
-                      active={stack.includes(item)}
-                      onClick={() => toggleStack(item)}
-                    >
-                      {item}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-
-              <p className="mt-4 font-mono text-[11px] text-slate-500">
-                {stack.length} total tracked
-              </p>
             </div>
           )}
 

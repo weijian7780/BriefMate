@@ -137,11 +137,6 @@ export default function ProfileScreen({
             Primary Stack
           </div>
           <PillList items={profile?.primaryStack} emptyText="No primary stack selected." />
-
-          <div className="mt-4 font-mono text-[11px] uppercase tracking-wide text-slate-500">
-            Also Tracked
-          </div>
-          <PillList items={profile?.stack} emptyText="No stack selected." />
         </div>
 
         <div className="mt-4 rounded-2xl border border-[#1E293B] bg-[#1E293B]/30 p-4">
